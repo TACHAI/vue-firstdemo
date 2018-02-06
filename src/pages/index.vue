@@ -31,6 +31,7 @@
     <div class="index-right">
       <slide-show :slides="slides" :inv="invTime"></slide-show>
       <div class="index-board-list">
+        <!-- 下面是内容的四个模块不一样的格式和图片  :class="[{'line-last' : index % 2 !== 0},这里是使用求于使得左右不一样的格式 'index-board-' + item.id]"  这里使得图片不一样-->
         <div class="index-board-item" :key="index" v-for="(item, index) in boardList" :class="[{'line-last' : index % 2 !== 0}, 'index-board-' + item.id]">
           <div class="index-board-item-inner" >
             <h2>{{ item.title }}</h2>
@@ -45,9 +46,32 @@
   </div>
 </template>
 <script>
+import slideShow from '../components/sliderShow'
 export default {
+  // props: {
+  //   slides: {
+  //     type: Array,
+  //     default: []
+  //   }
+  // },
+  components: {
+    slideShow
+  },
+  created: function () {
+    // this.$http.get('这里是请求的地址')
+    let me = this
+    this.$http.get('api/getNewsList')
+      // => 函数代表当前代码this不是运行期的this也可以在外面定义一个变量
+      .then((res) => {
+        this.newsList = res.data
+        console.log(res.data)
+      }, function (res) {
+        console.log(res.data)
+      })
+  },
   data () {
     return {
+      invTime: 2000,
       slides: [
         {
           src: require('../assets/slideShow/pic1.jpg'),

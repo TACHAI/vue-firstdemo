@@ -36,9 +36,9 @@
                   产品版本：
               </div>
               <div class="sales-board-line-right">
-                  <v-mul-chooser
+                  <v-chooser
                   :selections="versionList"
-                  @on-change="onParamChange('versions', $event)"></v-mul-chooser>
+                  @on-change="onParamChange('versions', $event)"></v-chooser>
               </div>
           </div>
           <div class="sales-board-line">
@@ -94,7 +94,8 @@
             <td>{{ buyType.label }}</td>
             <td>{{ period.label }}</td>
             <td>
-              <span v-for="item in versions">{{ item.label }}</span>
+              {{ version.label }}
+              <!--<span v-for="item in versions">{{ item.label }}</span>-->
             </td>
             <td>{{ price }}</td>
           </tr>
@@ -135,7 +136,7 @@ export default {
     return {
       buyNum: 0,
       buyType: {},
-      versions: [],
+      versions: {},
       period: {},
       price: 0,
       versionList: [
@@ -200,12 +201,13 @@ export default {
         buyNumber: this.buyNum,
         buyType: this.buyType.value,
         period: this.period.value,
-        version: buyVersionsArray.join(',')
+        // version: buyVersionsArray.join(',')
       }
       this.$http.post('/api/getPrice', reqParams)
-      .then((res) => {
-        this.price = res.data.amount
-      })
+        .then((res) => {
+          this.price = res.data.amount
+          console.log(res.data.amount + '总价格')
+        })
     },
     showPayDialog () {
       this.isShowPayDialog = true
@@ -230,24 +232,25 @@ export default {
         buyNumber: this.buyNum,
         buyType: this.buyType.value,
         period: this.period.value,
-        version: buyVersionsArray.join(','),
+        // version: buyVersionsArray.join(','),
         bankId: this.bankId
       }
       this.$http.post('/api/createOrder', reqParams)
-      .then((res) => {
-        this.orderId = res.data.orderId
-        this.isShowCheckOrder = true
-        this.isShowPayDialog = false
-      }, (err) => {
-        this.isShowBuyDialog = false
-        this.isShowErrDialog = true
-      })
+        .then((res) => {
+          this.orderId = res.data.orderId
+          this.isShowCheckOrder = true
+          this.isShowPayDialog = false
+        }, (err) => {
+          this.isShowBuyDialog = false
+          this.isShowErrDialog = true
+        })
     }
   },
   mounted () {
     this.buyNum = 1
     this.buyType = this.buyTypes[0]
-    this.versions = [this.versionList[0]]
+    this.version = this.versionList[0]
+    // this.versions = [this.versionList[0]]
     this.period = this.periodList[0]
     this.getPrice()
   }

@@ -1,290 +1,165 @@
 <template>
-  <div class="index-wrap">
-    <div class="index-left">
-      <div class="index-left-block">
-        <h2>全部产品</h2>
-        <template v-for="product in productList">
-          <h3>{{ product.title}}</h3>
-          <ul>
-            <li :key="index" v-for="(item,index) in product.list">
-              <a :href="item.url">{{ item.name }}</a>
-              <span v-if="item.hot" class="hot-tag">HOT</span>
-            </li>
-          </ul>
-          <div class="hr"></div>
-        </template>
-        <!--<ul>-->
-          <!--<li :key="index" v-for="(item, index) in productList.app">-->
-            <!--<a :href="item.url">{{ item.name}}</a>-->
-          <!--</li>-->
-        <!--</ul>-->
-      </div>
-      <div class="index-left-block lastest-news">
-        <h2>最新消息</h2>
+  <div class="detail-wrap">
+    <div class="detail-left">
+      <div class="product-board">
+        <img :src="productIcon">
         <ul>
-          <li v-for="item in newsList">
-            <a :href="item.url" class="new-item">{{ item.title }}</a>
-          </li>
+          <!--<li v-for="item in products">-->
+            <!--{{ item.name }}-->
+          <!--</li>-->
+          <router-link v-for="item in products" :to="{ path: item.path }" tag="li" active-class="active">
+            {{ item.name }}
+          </router-link>
         </ul>
       </div>
     </div>
-    <div class="index-right">
-      <slide-show :slides="slides" :inv="invTime"></slide-show>
-      <div class="index-board-list">
-        <!-- 下面是内容的四个模块不一样的格式和图片  :class="[{'line-last' : index % 2 !== 0},这里是使用求于使得左右不一样的格式 'index-board-' + item.id]"  这里使得图片不一样-->
-        <div class="index-board-item" :key="index" v-for="(item, index) in boardList" :class="[{'line-last' : index % 2 !== 0}, 'index-board-' + item.id]">
-          <div class="index-board-item-inner" >
-            <h2>{{ item.title }}</h2>
-            <p>{{ item.description }}</p>
-            <div class="index-board-button">
-              <router-link class="button" :to="{path: 'detail/' + item.toKey}">立即购买</router-link>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="detail-right">
+      <keep-alive>
+        <router-view></router-view>
+      </keep-alive>
     </div>
   </div>
 </template>
 <script>
-import slideShow from '../components/sliderShow'
 export default {
-  // props: {
-  //   slides: {
-  //     type: Array,
-  //     default: []
-  //   }
-  // },
-  components: {
-    slideShow
-  },
-  created: function () {
-    // this.$http.get('这里是请求的地址')
-    let me = this
-    this.$http.get('api/getNewsList')
-      // => 函数代表当前代码this不是运行期的this也可以在外面定义一个变量
-      .then((res) => {
-        this.newsList = res.data
-        console.log(res.data)
-      }, function (res) {
-        console.log(res.data)
-      })
-  },
   data () {
     return {
-      invTime: 2000,
-      slides: [
+      products: [
         {
-          src: require('../assets/slideShow/pic1.jpg'),
-          title: 'xxx1',
-          href: 'detail/analysis'
+          name: '数据统计',
+          path: 'count',
+          icon: require('../assets/images/1.png'),
+          active: false
         },
         {
-          src: require('../assets/slideShow/pic2.jpg'),
-          title: 'xxx2',
-          href: 'detail/count'
+          name: '数据预测',
+          path: 'forecast',
+          active: false
         },
         {
-          src: require('../assets/slideShow/pic3.jpg'),
-          title: 'xxx3',
-          href: 'http://xxx.xxx.com'
+          name: '流量分析',
+          path: 'analysis',
+          active: false
         },
         {
-          src: require('../assets/slideShow/pic4.jpg'),
-          title: 'xxx4',
-          href: 'detail/forecast'
+          name: '广告发布',
+          path: 'publish',
+          active: false
         }
       ],
-      boardList: [
-        {
-          title: '开放产品',
-          description: '开放产品是一款开放产品',
-          id: 'car',
-          toKey: 'analysis',
-          saleout: false
-        },
-        {
-          title: '品牌营销',
-          description: '品牌营销帮助你的产品更好地找到定位',
-          id: 'earth',
-          toKey: 'count',
-          saleout: false
-        },
-        {
-          title: '使命必达',
-          description: '使命必达快速迭代永远保持最前端的速度',
-          id: 'loud',
-          toKey: 'forecast',
-          saleout: true
-        },
-        {
-          title: '勇攀高峰',
-          description: '帮你勇闯高峰，到达事业的顶峰',
-          id: 'hill',
-          toKey: 'publish',
-          saleout: false
-        }
-      ],
-      newsList: [
-        {
-          title: '数据统计',
-          url: 'http://starcraft.com'
-        },
-        {
-          title: '数据预测',
-          url: 'http://warcraft.com'
-        },
-        {
-          title: '流量分析',
-          url: 'http://overwatch.com',
-          hot: true
-        },
-        {
-          title: '广告发布',
-          url: 'http://hearstone.com'
-        }
-      ],
-      productList: {
-        pc: {
-          title: 'pc产品',
-          list: [
-            {
-              name: '数据统计',
-              url: 'http://starcraft.com'
-            },
-            {
-              name: '数据预测',
-              url: 'http://warcraft.com'
-            },
-            {
-              name: '流量分析',
-              url: 'http://overwatch.com',
-              hot: true
-            },
-            {
-              name: '广告发布',
-              url: 'http://hearstone.com'
-            }
-          ]
-        },
-        app: {
-          title: '手机应用类',
-          list: [
-            {
-              name: '91助手',
-              url: 'http://weixin.com'
-            },
-            {
-              name: '产品助手',
-              url: 'http://twitter.com',
-              hot: true
-            },
-            {
-              name: '智能地图',
-              url: 'http://maps.com'
-            },
-            {
-              name: '团队语音',
-              url: 'http://phone.com'
-            }
-          ]
-        }
+      imgMap: {
+        '/detail/count': require('../assets/images/1.png'),
+        '/detail/forecast': require('../assets/images/2.png'),
+        '/detail/analysis': require('../assets/images/3.png'),
+        '/detail/publish': require('../assets/images/4.png')
       }
+    }
+  },
+  computed: {
+    productIcon () {
+      return this.imgMap[this.$route.path]
     }
   }
 }
 </script>
-<style scoped>
-  .index-wrap {
+<style >
+  .detail-wrap {
     width: 1200px;
     margin: 0 auto;
     overflow: hidden;
+    padding-top: 20px;
   }
-  .index-left {
+  .detail-left {
     float: left;
-    width: 300px;
-    text-align: left;
+    width: 200px;
+    text-align: center;
   }
-  .index-right {
+  .detail-right {
     float: left;
-    width: 900px;
+    width: 980px;
+    margin-left: 20px;
   }
-  .index-left-block {
-    margin: 15px;
+  .product-board {
     background: #fff;
-    box-shadow: 0 0 1px #ddd;
+    padding: 20px 0;
   }
-  .index-left-block .hr {
-    margin-bottom: 20px;
-  }
-  .index-left-block h2 {
-    background: #4fc08d;
-    color: #fff;
-    padding: 10px 15px;
-    margin-bottom: 20px;
-  }
-  .index-left-block h3 {
-    padding: 0 15px 5px 15px;
-    font-weight: bold;
-    color: #222;
-  }
-  .index-left-block ul {
-    padding: 10px 15px;
-  }
-  .index-left-block li {
-    padding: 5px;
-  }
-  .index-board-list {
-    overflow: hidden;
-  }
-  .index-board-item {
-    float: left;
-    width: 400px;
-    background: #fff;
-    box-shadow: 0 0 1px #ddd;
-    padding: 20px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-  }
-  .index-board-item-inner {
-    min-height: 125px;
-    padding-left: 120px;
-  }
-  .index-board-car .index-board-item-inner{
-    background: url(../assets/images/1.png) no-repeat;
-  }
-  .index-board-loud .index-board-item-inner{
-    background: url(../assets/images/2.png) no-repeat;
-  }
-  .index-board-earth .index-board-item-inner{
-    background: url(../assets/images/3.png) no-repeat;
-  }
-  .index-board-hill .index-board-item-inner{
-    background: url(../assets/images/4.png) no-repeat;
-  }
-  .index-board-item h2 {
-    font-size: 18px;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 15px;
-  }
-  .line-last {
-    margin-right: 0;
-  }
-  .index-board-button {
+  .product-board ul {
     margin-top: 20px;
   }
-  .lastest-news {
-    min-height: 512px;
+  .product-board li {
+    text-align: left;
+    padding: 10px 15px;
+    cursor: pointer;
   }
-  .hot-tag {
-    background: red;
+  .product-board li.active,
+  .product-board li:hover {
+    background: #4fc08d;
     color: #fff;
   }
-  .new-item {
+  .product-board li a {
+    display: block;
+  }
+  .sales-board {
+    background: #fff;
+  }
+  .sales-board-form {
+
+  }
+  .sales-board-intro h2 {
+    font-size: 20px;
+    padding: 20px;
+  }
+  .sales-board-intro p {
+    background: #f7fcff;
+    padding: 10px 20px;
+    color: #999;
+    line-height: 1.8;
+  }
+  .sales-board-form {
+    padding: 30px 20px;
+    font-size: 14px;
+  }
+  .sales-board-line {
+    clear: both;
+    padding-bottom: 20px;
+  }
+  .sales-board-line-left {
     display: inline-block;
-    width: 230px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    width: 100px;
+  }
+  .sales-board-line-right {
+    display: inline-block;
+    width: 75%;
+  }
+  .sales-board-des {
+    border-top: 20px solid #f0f2f5;
+    padding: 15px 20px;
+  }
+  .sales-board-des p {
+    line-height: 1.6;
+  }
+  .sales-board-des h2 {
+    font-size: 20px;
+    padding-bottom: 15px;
+  }
+  .sales-board-des h3 {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 20px 0 10px 0;
+  }
+  .sales-board-des li {
+    padding: 5px 0;
+  }
+  .sales-board-table {
+    width: 100%;
+    margin-top: 20px;
+  }
+  .sales-board-table th {
+    background: #4fc08d;
+    color: #fff;
+  }
+  .sales-board-table td {
+    border: 1px solid #f0f2f5;
+    padding: 15px;
   }
 </style>

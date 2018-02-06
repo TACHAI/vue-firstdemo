@@ -10,6 +10,19 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const portfinder = require('portfinder')
 
+
+var express = require('express')
+var bodyParser = require('body-parser')
+var apiRouter = express.Router()
+var fs = require('fs')
+
+
+// var apiServer = jsonServer.create()
+// var apiRouter = jsonServer.router('db.json')
+// var middlewares = jsonServer.defaults()
+
+
+
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
@@ -22,6 +35,32 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 
   // these devServer options should be customized in /config/index.js
   devServer: {
+    before(apiServer) {
+      apiServer.use(bodyParser.urlencoded({ extended: true }))
+      apiServer.use(bodyParser.json())
+      apiRouter.route('/:apiName')
+        .all(function (req, res) {
+          fs.readFile('./db.json', 'utf8', function (err, data) {
+            if (err) throw err
+            var data = JSON.parse(data)
+            if (data[req.params.apiName]) {
+              res.json(data[req.params.apiName])
+            }
+            else {
+              res.send('no such api name')
+            }
+
+          })
+        })
+      apiServer.use('/api', apiRouter);
+      apiServer.listen(8081, function (err) {
+        if (err) {
+          console.log(err)
+          return
+        }
+        console.log('Listening at http://localhost:' + (8081) + '\n')
+      })
+    },
     clientLogLevel: 'warning',
     historyApiFallback: {
       rewrites: [

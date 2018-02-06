@@ -10,7 +10,7 @@
                   购买数量：
               </div>
               <div class="sales-board-line-right">
-                  <v-counter :max="100" :min="20"></v-counter>
+                  <v-counter :max="100" :min="1"></v-counter>
               </div>
           </div>
           <div class="sales-board-line">
@@ -18,7 +18,8 @@
                   行业：
               </div>
               <div class="sales-board-line-right">
-                  <v-selection :selections="tradeList"></v-selection>
+                  <v-selection :selections="tradeList"
+                               @on-change="onParamChange('trade', $event)"></v-selection>
               </div>
           </div>
           <div class="sales-board-line">
@@ -26,7 +27,8 @@
                   产品版本：
               </div>
               <div class="sales-board-line-right">
-                  <v-mul-chooser :selections="versionList"></v-mul-chooser>
+                  <v-chooser :selections="versionList"
+                  @on-change="onParamChange('version',$event)"></v-chooser>
               </div>
           </div>
           <div class="sales-board-line">
@@ -48,7 +50,7 @@
           <div class="sales-board-line">
               <div class="sales-board-line-left">&nbsp;</div>
               <div class="sales-board-line-right">
-                  <div class="button">
+                  <div class="button" @click="showPayDialog">
                     立即购买
                   </div>
               </div>
@@ -248,6 +250,33 @@
           </tbody>
       </table>
       </div>
+      <my-dialog :is-show="isShowPayDialog" @on-close="hidePayDialog">
+      <table class="buy-dialog-table">
+        <tr>
+          <th>数量</th>
+          <th>行业</th>
+          <th>产品版本</th>
+          <th>有效时间</th>
+          <th>总价</th>
+        </tr>
+        <tr>
+          <td>{{ buyNum }}</td>
+          <td>{{ trade.label }}</td>
+          <td>{{ version.label }}</td>
+          <td>半年</td>
+          <td>500</td>
+        </tr>
+      </table>
+      <h3 class="buy-dialog-title">请选择银行</h3>
+      <bank-chooser @on-change="onChangeBanks"></bank-chooser>
+      <div class="button buy-dialog-btn" @click="confirmBuy">
+        确认购买
+      </div>
+    </my-dialog>
+      <my-dialog :is-show="isShowErrDialog" @on-close="hideErrDialog">
+      支付失败！
+    </my-dialog>
+      <check-order :is-show-check-dialog="isShowCheckOrder" :order-id="orderId" @on-close-check-dialog="hideCheckOrder"></check-order>
   </div>
 </template>
 
@@ -255,14 +284,26 @@
 import VSelection from '../../components/base/selection'
 import VCounter from '../../components/base/counter'
 import VMulChooser from '../../components/base/multiplyChooser'
+import VChooser from '../../components/base/chooser'
+import Diglog from '../../components/base/dialog'
+import BankChooser from '../../components/bankChooser'
+import CheckOrder from '../../components/checkOrder'
 export default {
   components: {
     VSelection,
     VCounter,
-    VMulChooser
+    VMulChooser,
+    VChooser,
+    BankChooser,
+    CheckOrder,
+    MyDialog: Diglog
   },
   data () {
     return {
+      buyNum: 0,
+      trade: {},
+      version: {},
+      price: 0,
       tradeList: [
         {
           label: '出版业',
@@ -302,13 +343,100 @@ export default {
           label: '专家版',
           value: 3
         }
-      ]
+      ],
+      isShowPayDialog: false,
+      bankId: null,
+      orderId: null,
+      isShowCheckOrder: false,
+      isShowErrDialog: false
     }
+  },
+  methods: {
+    onParamChange (attr, val) {
+      this[attr] = val
+      this.getPrice()
+    },
+    getPrice () {
+      let buyVersionsArray = _.map(this.versions, (item) => {
+        return item.value
+      })
+      let reqParams = {
+        buyNumber: this.buyNum
+      }
+      this.$http.post('/api/getPrice', reqParams)
+        .then((res) => {
+          this.price = res.data.amount
+          console.log(res.data.amount + '总价格')
+        })
+    },
+    showPayDialog () {
+      this.isShowPayDialog = true
+    },
+    hidePayDialog () {
+      this.isShowPayDialog = false
+    },
+    hideErrDialog () {
+      this.isShowErrDialog = false
+    },
+    hideCheckOrder () {
+      this.isShowCheckOrder = false
+    },
+    onChangeBanks (bankObj) {
+      this.bankId = bankObj.id
+    },
+    confirmBuy () {
+      let buyVersionsArray = _.map(this.versions, (item) => {
+        return item.value
+      })
+      let reqParams = {
+        buyNumber: this.buyNum,
+        buyType: this.buyType.value,
+        period: this.period.value,
+        version: buyVersionsArray.join(','),
+        bankId: this.bankId
+      }
+      this.$http.post('/api/createOrder', reqParams)
+        .then((res) => {
+          this.orderId = res.data.orderId
+          this.isShowCheckOrder = true
+          this.isShowPayDialog = false
+        }, (err) => {
+          this.isShowBuyDialog = false
+          this.isShowErrDialog = true
+        })
+    }
+  },
+  mounted () {
+    this.buyNum = 1
+    this.trade = this.tradeList[0]
+    this.version = this.versionList[0]
+    this.getPrice()
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-
+  .buy-dialog-title {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .buy-dialog-btn {
+    margin-top: 20px;
+  }
+  .buy-dialog-table {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .buy-dialog-table td,
+  .buy-dialog-table th{
+    border: 1px solid #e3e3e3;
+    text-align: center;
+    padding: 5px 0;
+  }
+  .buy-dialog-table th {
+    background: #4fc08d;
+    color: #fff;
+    border: 1px solid #4fc08d;
+  }
 </style>

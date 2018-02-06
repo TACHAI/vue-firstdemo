@@ -1,16 +1,28 @@
 <template>
   <div class="login-form">
     <div class="g-form">
-      <div class="g-form-line" v-for="formLine in formData">
-        <span class="g-form-label">{{ formLine.label }}：</span>
+      <!--<div class="g-form-line" v-for="formLine in formData">-->
+      <div class="g-form-line">
+        <span class="g-form-label">用户名</span>
         <div class="g-form-input">
-          <input type="text" 
-          v-model="formLine.model" placeholder="请输入用户名">
+          <input type="text" v-model="name" placeholder="请输入用户名" >
+        </div>
+      </div>
+      <div class="g-form-line">
+        <span class="g-form-label">密码</span>
+        <div class="g-form-input">
+          <input type="password" v-model="password1" placeholder="请输入密码">
+        </div>
+      </div>
+      <div class="g-form-line">
+        <span class="g-form-label">再一次输入密码</span>
+        <div class="g-form-input">
+          <input type="password" v-model="password2" placeholder="请输入密码">
         </div>
       </div>
       <div class="g-form-line">
         <div class="g-form-btn">
-          <a class="button" @click="onLogin">登录</a>
+          <a class="button" @click="onReg">注测</a>
         </div>
       </div>
     </div>
@@ -24,17 +36,19 @@ export default {
   },
   data () {
     return {
-      
+      name: '',
+      passwordl: '',
+      passwordl2: '',
+      errorText: ''
     }
   },
   computed: {
     userErrors () {
       let status, errorText
-      if (!/@/g.test(this.usernameModel)) {
+      if (!/@/g.test(this.name)) {
         status = false
         errorText = '必须包含@'
-      }
-      else {
+      } else {
         status = true
         errorText = ''
       }
@@ -45,11 +59,10 @@ export default {
     },
     passwordErrors () {
       let status, errorText
-      if (!/@/g.test(this.usernameModel)) {
+      if (!/^\w{1,6}$/g.test(this.password1)) {
         status = false
-        errorText = '必须包含@'
-      }
-      else {
+        errorText = '密码不是1-6位'
+      } else {
         status = true
         errorText = ''
       }
@@ -57,11 +70,37 @@ export default {
         status,
         errorText
       }
+    },
+    check () {
+      let status
+      if (this.password1 === this.password2) {
+        status = true
+      } else {
+        status = false
+      }
+      return {
+        status
+      }
     }
   },
   methods: {
     closeMyself () {
       this.$emit('on-close')
+    },
+    onReg () {
+      if (!this.userErrors.status || !this.passwordErrors.status || this.check().status) {
+        this.errorText = '部分选项未通过'
+      } else {
+        this.errorText = ''
+        this.$http.get('api/login')
+          .then((res) => {
+            this.data = res.data
+            this.$emit('has-log', res.data)
+            console.log('4564')
+          }, (error) => {
+            console.log(error)
+          })
+      }
     }
   }
 }
